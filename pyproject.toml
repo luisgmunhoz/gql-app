@@ -55,7 +55,7 @@ files= ["."]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["-v", "--cov=graphene_start", "--cov-report=term-missing"]
+addopts = [".","-v", "--cov=.", "--cov-report=term-missing"]
 
 
 [build-system]
