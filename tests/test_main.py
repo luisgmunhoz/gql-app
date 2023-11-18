@@ -1,5 +1,24 @@
-import pytest
-from main import JobObject, employers_data
+from main import JobObject, EmployerObject, employers_data, jobs_data
+
+
+class TestEmployerObject:
+    def setup_method(self) -> None:
+        self.employer = EmployerObject()
+
+    def test_attributes(self) -> None:
+        assert hasattr(self.employer, "id")
+        assert hasattr(self.employer, "name")
+        assert hasattr(self.employer, "contact_email")
+        assert hasattr(self.employer, "industry")
+        assert hasattr(self.employer, "jobs")
+
+    def test_resolve_jobs(self) -> None:
+        root = {"id": 1}
+        expected_jobs = [job for job in jobs_data if job["employer_id"] == 1]
+        assert self.employer.resolve_jobs(root, None) == expected_jobs
+
+        root = {"id": 999}
+        assert self.employer.resolve_jobs(root, None) == []
 
 
 class TestJobObject:
@@ -21,5 +40,4 @@ class TestJobObject:
         assert self.job.resolve_employer(root, None) == expected_employer
 
         root = {"employer_id": 999}
-        with pytest.raises(IndexError):
-            self.job.resolve_employer(root, None)
+        assert self.job.resolve_employer(root, None) is None
