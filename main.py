@@ -69,12 +69,15 @@ class JobObject(ObjectType):
     employer = Field(lambda: EmployerObject)
 
     @staticmethod
-    def resolve_employer(root: Dict[str, Any], info: Any) -> Dict[str, Any]:
-        return [
-            employer
-            for employer in employers_data
-            if employer["id"] == root["employer_id"]
-        ][0]
+    def resolve_employer(root: Dict[str, Any], info: Any) -> Optional[Dict[str, Any]]:
+        return next(
+            (
+                employer
+                for employer in employers_data
+                if employer["id"] == root["employer_id"]
+            ),
+            None,
+        )
 
 
 class Query(ObjectType):
