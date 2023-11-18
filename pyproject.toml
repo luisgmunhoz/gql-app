@@ -9,6 +9,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8.1"
 graphene = "^3.3"
+fastapi = "^0.104.1"
+starlette-graphene = "^0.3.0"
+uvicorn = "^0.24.0.post1"
 
 
 [tool.poetry.group.dev.dependencies]
