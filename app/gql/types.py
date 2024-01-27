@@ -1,6 +1,5 @@
 from graphene import ObjectType, Int, String, Field, List as GrapheneList
-from typing import Any, Dict, List, Optional
-from app.db.data import employers_data, jobs_data
+from typing import Any
 
 
 class EmployerObject(ObjectType):
@@ -11,8 +10,8 @@ class EmployerObject(ObjectType):
     jobs = GrapheneList(lambda: JobObject)
 
     @staticmethod
-    def resolve_jobs(root: Dict[str, Any], info: Any) -> List[Dict[str, Any]]:
-        return [job for job in jobs_data if job["employer_id"] == root["id"]]
+    def resolve_jobs(root: Any, info: Any) -> Any:
+        return root.jobs
 
 
 class JobObject(ObjectType):
@@ -23,12 +22,5 @@ class JobObject(ObjectType):
     employer = Field(lambda: EmployerObject)
 
     @staticmethod
-    def resolve_employer(root: Dict[str, Any], info: Any) -> Optional[Dict[str, Any]]:
-        return next(
-            (
-                employer
-                for employer in employers_data
-                if employer["id"] == root["employer_id"]
-            ),
-            None,
-        )
+    def resolve_employer(root: Any, info: Any) -> Any:
+        return root.employer
