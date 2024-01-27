@@ -1,4 +1,5 @@
-from main import JobObject, EmployerObject, employers_data, jobs_data
+from app.db.data import employers_data, jobs_data
+from app.gql.types import JobObject, EmployerObject
 
 
 class TestEmployerObject:
