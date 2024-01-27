@@ -1,9 +1,42 @@
-from typing import Any, Dict, List, Optional
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Dict, List, Optional
 from graphene import Field, Int, Schema, ObjectType, String, List as GrapheneList
 from fastapi import FastAPI
 from starlette_graphene import GraphQLApp
 import uvicorn
+from sqlalchemy import Column, ForeignKey, Integer, String as SaString, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
+import os
 
+engine = create_engine(os.environ["DB_URL"])
+
+Base = declarative_base()
+
+
+class Employer(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "employers"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(SaString)
+    contact_email = Column(SaString)
+    industry = Column(SaString)
+    jobs = relationship("Job", back_populates="employer")
+
+
+class Job(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "jobs"
+    id = Column(Integer, primary_key=True)
+    title = Column(SaString)
+    description = Column(SaString)
+    employer_id = Column(Integer, ForeignKey("employers.id"))
+    employer = relationship("Employer", back_populates="jobs")
+
+
+Base.metadata.create_all(engine)
+
+
+Session = sessionmaker(bind=engine)
 
 # static data
 employers_data = [
@@ -46,7 +79,25 @@ jobs_data = [
         "description": "Manage people who manage records",
         "employer_id": 2,
     },
+    {
+        "id": 5,
+        "title": "Plumber",
+        "description": "Independent contractor",
+        "employer_id": 2,
+    },
 ]
+
+
+def prepare_db() -> None:
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    session = Session()
+    for employer in employers_data:
+        session.add(Employer(**employer))
+    for job in jobs_data:
+        session.add(Job(**job))
+    session.commit()
+    session.close()
 
 
 class EmployerObject(ObjectType):
@@ -96,7 +147,16 @@ class Query(ObjectType):
 schema = Schema(query=Query)
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    prepare_db()
+    try:
+        yield
+    finally:
+        pass
+
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/graphql", GraphQLApp(schema=schema))
 
 
